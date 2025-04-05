@@ -1,10 +1,14 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useSettingsStore } from '../stores/settings'
 import { useTransactionStore } from '../stores/transactions'
+import { useBudgetStore } from '../stores/budget'
 
+const router = useRouter()
 const settingsStore = useSettingsStore()
 const transactionStore = useTransactionStore()
+const budgetStore = useBudgetStore()
 
 const userName = ref(settingsStore.getUserName)
 const currency = ref(settingsStore.getCurrency)
@@ -46,9 +50,18 @@ const login = () => {
 
 // 登出
 const logout = () => {
+  // 清除状态
   settingsStore.logout()
+  
+  // 重置各个store的状态
+  transactionStore.resetState && transactionStore.resetState()
+  budgetStore.resetState && budgetStore.resetState()
+  
+  // 重置表单
   userName.value = '用户'
-  showSavedMessage()
+  
+  // 重定向到登录页面
+  router.push('/login')
 }
 
 // 导出数据

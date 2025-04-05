@@ -1,9 +1,17 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { computed, watch } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 import { useSettingsStore } from './stores/settings'
+import { useRouter, useRoute } from 'vue-router'
 
 const settingsStore = useSettingsStore()
+const router = useRouter()
+const route = useRoute()
+
+// 判断当前是否为登录页面
+const isLoginPage = computed(() => {
+  return route.name === 'login'
+})
 
 // 获取当前主题
 const currentTheme = computed(() => settingsStore.getTheme)
@@ -21,11 +29,38 @@ const navItems = [
   { path: '/analysis', name: '财务分析', icon: 'analysis' },
   { path: '/settings', name: '设置', icon: 'settings' }
 ]
+
+onMounted(() => {
+  // 检查浏览器是否有保存的token
+  const token = localStorage.getItem('token')
+  
+  // 检查token是否有效 (简单检查格式)
+  if (token) {
+    try {
+      const isValidFormat = typeof token === 'string' && token.split('.').length === 3
+      
+      if (!isValidFormat) {
+        console.log('检测到无效的token格式，清除并重定向到登录页')
+        localStorage.removeItem('token')
+        if (router.currentRoute.value.meta.requiresAuth) {
+          router.push('/login')
+        }
+      }
+    } catch (e) {
+      console.error('Token验证错误:', e)
+      localStorage.removeItem('token')
+      if (router.currentRoute.value.meta.requiresAuth) {
+        router.push('/login')
+      }
+    }
+  }
+})
 </script>
 
 <template>
-  <div class="app" :class="currentTheme">
-    <aside class="sidebar">
+  <div class="app" :class="[currentTheme, { 'login-page': isLoginPage }]">
+    <!-- 在非登录页面显示侧边栏 -->
+    <aside class="sidebar" v-if="!isLoginPage">
       <div class="brand">
         <h1>个人财务管理</h1>
       </div>
@@ -49,7 +84,8 @@ const navItems = [
       </div>
     </aside>
     
-    <main class="main-content">
+    <!-- 主内容 -->
+    <main class="main-content" :class="{ 'full-width': isLoginPage }">
       <RouterView />
     </main>
   </div>
@@ -146,6 +182,11 @@ body {
   min-height: 100vh;
 }
 
+/* 登录页样式 */
+.login-page {
+  background-color: var(--background-color);
+}
+
 .sidebar {
   width: 220px;
   background-color: var(--sidebar-background);
@@ -237,6 +278,13 @@ body {
   box-sizing: border-box;
 }
 
+/* 登录页面全宽内容 */
+.main-content.full-width {
+  margin-left: 0;
+  width: 100%;
+  padding: 0;
+}
+
 @media (max-width: 768px) {
   .sidebar {
     width: 80px;
@@ -266,7 +314,7 @@ body {
     justify-content: center;
   }
   
-  .main-content {
+  .main-content:not(.full-width) {
     margin-left: 80px;
     width: calc(100% - 80px);
     padding: 20px;

@@ -74,11 +74,27 @@ export const useSettingsStore = defineStore('settings', {
     
     // 登出
     logout() {
+      // 调用API退出登录（仅为了一致性，JWT是无状态的）
+      try {
+        api.auth.logout().catch(() => {
+          // 忽略错误，因为这是可选的服务器操作
+        });
+      } catch (error) {
+        console.error('登出API调用错误:', error);
+      }
+      
       // 清除token
       localStorage.removeItem('token');
       
       // 重置状态
-      this.settings.isLoggedIn = false;
+      this.settings = {
+        currency: '¥',
+        theme: 'light',
+        userName: '用户',
+        isLoggedIn: false
+      };
+      this.isLoading = false;
+      this.error = null;
     }
   }
 }) 

@@ -32,6 +32,7 @@ export const useTransactionStore = defineStore('transactions', {
     getTransactionsByMonth: (state) => {
       return (month, year) => {
         return state.transactions.filter(transaction => {
+          if (!transaction.date) return false;
           const date = new Date(transaction.date);
           return date.getMonth() === month && date.getFullYear() === year;
         });
@@ -54,9 +55,12 @@ export const useTransactionStore = defineStore('transactions', {
       try {
         const response = await api.transactions.getAll();
         this.transactions = response.data;
+        return response.data;
       } catch (error) {
         this.error = error.message || '获取交易记录失败';
         console.error('获取交易记录失败:', error);
+        // 重新抛出错误以便上层组件处理
+        throw error;
       } finally {
         this.isLoading = false;
       }
@@ -75,9 +79,11 @@ export const useTransactionStore = defineStore('transactions', {
         
         // 将新交易添加到本地状态
         this.transactions.push(response.data);
+        return response.data;
       } catch (error) {
         this.error = error.message || '添加交易记录失败';
         console.error('添加交易记录失败:', error);
+        throw error;
       } finally {
         this.isLoading = false;
       }
@@ -96,9 +102,11 @@ export const useTransactionStore = defineStore('transactions', {
         if (index !== -1) {
           this.transactions[index] = response.data;
         }
+        return response.data;
       } catch (error) {
         this.error = error.message || '更新交易记录失败';
         console.error('更新交易记录失败:', error);
+        throw error;
       } finally {
         this.isLoading = false;
       }
@@ -114,12 +122,21 @@ export const useTransactionStore = defineStore('transactions', {
         
         // 从本地状态中移除
         this.transactions = this.transactions.filter(t => t.id !== id);
+        return true;
       } catch (error) {
         this.error = error.message || '删除交易记录失败';
         console.error('删除交易记录失败:', error);
+        throw error;
       } finally {
         this.isLoading = false;
       }
+    },
+    
+    // 重置状态（用于用户退出登录时）
+    resetState() {
+      this.transactions = [];
+      this.isLoading = false;
+      this.error = null;
     }
   }
 }) 

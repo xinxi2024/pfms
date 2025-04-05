@@ -269,7 +269,10 @@ const handleRegister = async () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f5f7fa;
+  width: 1280px;
+  /* background-color: #f5f7fa; */
+  /* background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
+  padding: 20px;
 }
 
 .login-box {
@@ -277,7 +280,7 @@ const handleRegister = async () => {
   max-width: 450px;
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   padding: 40px;
 }
 
@@ -325,6 +328,7 @@ input[type="password"]:focus,
 input[type="email"]:focus {
   border-color: #1890ff;
   outline: none;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
 .has-error {

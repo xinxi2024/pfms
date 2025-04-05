@@ -127,6 +127,13 @@ export const useBudgetStore = defineStore('budget', {
       } finally {
         this.isLoading = false;
       }
+    },
+    
+    // 重置状态（用于用户退出登录时）
+    resetState() {
+      this.budgets = [];
+      this.isLoading = false;
+      this.error = null;
     }
   }
 }) 

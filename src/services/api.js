@@ -1,8 +1,9 @@
 import axios from 'axios'
+import router from '../router'
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -20,6 +21,29 @@ api.interceptors.request.use(
     return config
   },
   error => {
+    return Promise.reject(error)
+  }
+)
+
+// 响应拦截器
+api.interceptors.response.use(
+  response => {
+    return response
+  },
+  error => {
+    // 处理认证错误
+    if (error.response && error.response.status === 401 || error.response && error.response.status === 403) {
+      console.warn('API认证失败:', error.response.status)
+      
+      // 清除本地token
+      localStorage.removeItem('token')
+      
+      // 如果不是登录页面，重定向到登录页
+      if (router.currentRoute.value.name !== 'login') {
+        router.push('/login')
+      }
+    }
+    
     return Promise.reject(error)
   }
 )
