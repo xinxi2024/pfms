@@ -124,51 +124,76 @@ const handleRelogin = () => {
 <style scoped>
 .dashboard {
   max-width: 100%;
-  margin: 0 auto;
   width: 900px;
+  margin: 0 auto; 
 }
 
 h1 {
   margin-bottom: 25px;
-  color: #333;
-  font-size: 24px;
+  color: var(--heading-color);
+  font-size: 28px;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 12px;
+}
+
+h1::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 40px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 3px;
 }
 
 h2 {
   font-size: 20px;
   margin-bottom: 20px;
-  color: #444;
+  color: var(--heading-color);
+  font-weight: 500;
 }
 
 .section {
-  margin-bottom: 30px;
+  margin-bottom: 32px;
   padding: 0;
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .loading-state {
   text-align: center;
-  padding: 50px;
+  padding: 80px;
   font-size: 18px;
-  color: #888;
+  color: var(--text-color-secondary);
+  border-radius: 12px;
+  background-color: var(--component-background);
+  box-shadow: var(--card-shadow);
 }
 
 .error-state {
   text-align: center;
   padding: 50px;
-  color: #ff4d4f;
+  color: var(--error-color);
   background-color: #fff1f0;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-top: 20px;
+  box-shadow: var(--card-shadow);
 }
 
 .error-state h3 {
   margin-bottom: 10px;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .error-state p {
   margin-bottom: 20px;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .error-actions {
@@ -176,38 +201,54 @@ h2 {
 }
 
 .login-button {
-  background-color: #1890ff;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 12px 24px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.3s;
+  box-shadow: 0 4px 6px rgba(24, 144, 255, 0.2);
 }
 
 .login-button:hover {
-  background-color: #40a9ff;
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(24, 144, 255, 0.3);
 }
 
 .charts-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 30px;
+  gap: 24px;
   margin-bottom: 35px;
 }
 
 .chart-wrapper {
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
-  padding: 30px;
+  background-color: var(--component-background);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 24px;
+  transition: all 0.3s;
+}
+
+.chart-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
 }
 
 .recent-transactions-section {
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
-  padding: 30px;
+  background-color: var(--component-background);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 24px;
+  transition: all 0.3s;
+}
+
+.recent-transactions-section:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
 }
 
 .section-header {
@@ -218,20 +259,39 @@ h2 {
 }
 
 .view-all {
-  color: #1890ff;
-  font-size: 14px;
+  color: var(--primary-color);
+  font-size: 15px;
   text-decoration: none;
   display: flex;
   align-items: center;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.3s;
 }
 
 .view-all:hover {
-  text-decoration: underline;
+  background-color: rgba(24, 144, 255, 0.1);
+  transform: translateX(4px);
 }
 
 @media (max-width: 1200px) {
   .charts-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 0 10px;
+  }
+  
+  h1 {
+    font-size: 24px;
+  }
+  
+  .chart-wrapper, 
+  .recent-transactions-section {
+    padding: 16px;
   }
 }
 </style>

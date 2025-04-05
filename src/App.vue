@@ -16,6 +16,9 @@ const isLoginPage = computed(() => {
 // 获取当前主题
 const currentTheme = computed(() => settingsStore.getTheme)
 
+// 判断当前激活的导航项
+const currentRouteName = computed(() => route.name)
+
 // 监听主题变化，应用主题样式
 watch(() => currentTheme.value, (newTheme) => {
   document.documentElement.setAttribute('data-theme', newTheme)
@@ -23,11 +26,11 @@ watch(() => currentTheme.value, (newTheme) => {
 
 // 导航菜单
 const navItems = [
-  { path: '/', name: '仪表盘', icon: 'dashboard' },
-  { path: '/transactions', name: '收支记录', icon: 'transaction' },
-  { path: '/budget', name: '预算管理', icon: 'budget' },
-  { path: '/analysis', name: '财务分析', icon: 'analysis' },
-  { path: '/settings', name: '设置', icon: 'settings' }
+  { path: '/', name: 'home', label: '仪表盘', icon: 'dashboard' },
+  { path: '/transactions', name: 'transactions', label: '收支记录', icon: 'transaction' },
+  { path: '/budget', name: 'budget', label: '预算管理', icon: 'budget' },
+  { path: '/analysis', name: 'analysis', label: '财务分析', icon: 'analysis' },
+  { path: '/settings', name: 'settings', label: '设置', icon: 'settings' }
 ]
 
 onMounted(() => {
@@ -62,7 +65,8 @@ onMounted(() => {
     <!-- 在非登录页面显示侧边栏 -->
     <aside class="sidebar" v-if="!isLoginPage">
       <div class="brand">
-        <h1>个人财务管理</h1>
+        <span class="logo">💰</span>
+        <h1>财务管理系统</h1>
       </div>
       
       <nav class="nav-menu">
@@ -71,22 +75,34 @@ onMounted(() => {
           :key="item.path"
           :to="item.path"
           class="nav-item"
-          active-class="active"
+          :class="{ 'active': currentRouteName === item.name }"
         >
-          <span class="nav-icon" :class="`icon-${item.icon}`"></span>
-          <span class="nav-text">{{ item.name }}</span>
+          <div class="nav-icon-wrapper">
+            <span class="nav-icon" :class="`icon-${item.icon}`"></span>
+          </div>
+          <span class="nav-text">{{ item.label }}</span>
         </RouterLink>
       </nav>
       
       <div class="user-info">
-        <div class="avatar">{{ settingsStore.getUserName.slice(0, 1) }}</div>
-        <div class="username">{{ settingsStore.getUserName }}</div>
+        <div class="avatar">{{ settingsStore.getUserName.slice(0, 1).toUpperCase() }}</div>
+        <div class="user-details">
+          <div class="username">{{ settingsStore.getUserName }}</div>
+          <div class="user-status">
+            <span class="status-dot"></span>
+            <span class="status-text">在线</span>
+          </div>
+        </div>
       </div>
     </aside>
     
     <!-- 主内容 -->
     <main class="main-content" :class="{ 'full-width': isLoginPage }">
-      <RouterView />
+      <RouterView v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </RouterView>
     </main>
   </div>
 </template>
@@ -94,6 +110,8 @@ onMounted(() => {
 <style>
 :root {
   --primary-color: #1890ff;
+  --primary-hover: #40a9ff;
+  --primary-active: #096dd9;
   --success-color: #52c41a;
   --warning-color: #faad14;
   --error-color: #ff4d4f;
@@ -102,14 +120,18 @@ onMounted(() => {
   --text-color-secondary: #666;
   --disabled-color: #bfbfbf;
   --border-color: #f0f0f0;
-  --background-color: #f5f5f5;
+  --background-color: #f5f8fa;
   --component-background: #fff;
-  --sidebar-background: #001529;
+  --sidebar-background: linear-gradient(180deg, #192c3e 0%, #253b50 100%);
   --sidebar-text-color: rgba(255, 255, 255, 0.65);
   --sidebar-active-text-color: #fff;
+  --card-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.08), 0 9px 28px 0 rgba(0, 0, 0, 0.05), 0 12px 48px 16px rgba(0, 0, 0, 0.03);
 }
 
 html[data-theme='dark'] {
+  --primary-color: #1890ff;
+  --primary-hover: #40a9ff;
+  --primary-active: #096dd9;
   --heading-color: #fff;
   --text-color: rgba(255, 255, 255, 0.85);
   --text-color-secondary: rgba(255, 255, 255, 0.45);
@@ -117,9 +139,10 @@ html[data-theme='dark'] {
   --border-color: #303030;
   --background-color: #141414;
   --component-background: #1f1f1f;
-  --sidebar-background: #141414;
+  --sidebar-background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
   --sidebar-text-color: rgba(255, 255, 255, 0.45);
   --sidebar-active-text-color: #1890ff;
+  --card-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.32), 0 9px 28px 0 rgba(0, 0, 0, 0.2), 0 12px 48px 16px rgba(0, 0, 0, 0.12);
 }
 
 * {
@@ -138,16 +161,27 @@ body {
   line-height: 1.5;
 }
 
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
 /* 图标样式 */
 .nav-icon {
   display: inline-block;
-  width: 24px;
-  height: 24px;
-  margin-right: 10px;
+  width: 20px;
+  height: 20px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   opacity: 0.7;
+  transition: all 0.3s;
 }
 
 .active .nav-icon {
@@ -188,8 +222,8 @@ body {
 }
 
 .sidebar {
-  width: 220px;
-  background-color: var(--sidebar-background);
+  width: 240px;
+  background: var(--sidebar-background);
   color: var(--sidebar-text-color);
   display: flex;
   flex-direction: column;
@@ -199,6 +233,8 @@ body {
   bottom: 0;
   overflow-y: auto;
   z-index: 10;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
 }
 
 .brand {
@@ -206,8 +242,14 @@ body {
   height: 64px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background-color: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.logo {
+  font-size: 24px;
+  margin-right: 12px;
 }
 
 .brand h1 {
@@ -215,22 +257,25 @@ body {
   font-weight: 600;
   color: white;
   margin: 0;
+  letter-spacing: 0.5px;
 }
 
 .nav-menu {
-  padding: 16px 0;
+  padding: 24px 0;
   flex: 1;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  height: 50px;
-  padding: 0 20px;
+  height: 48px;
+  padding: 0 24px;
   color: var(--sidebar-text-color);
   text-decoration: none;
   position: relative;
   transition: all 0.3s;
+  margin: 4px 8px;
+  border-radius: 6px;
 }
 
 .nav-item:hover {
@@ -240,42 +285,105 @@ body {
 
 .nav-item.active {
   color: var(--sidebar-active-text-color);
+  background-color: rgba(24, 144, 255, 0.2);
+  font-weight: 500;
+}
+
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
   background-color: var(--primary-color);
+  border-radius: 0 3px 3px 0;
+}
+
+.nav-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  margin-right: 12px;
+  transition: all 0.3s;
+}
+
+.active .nav-icon-wrapper {
+  background-color: rgba(24, 144, 255, 0.2);
+}
+
+.nav-text {
+  font-size: 15px;
 }
 
 .user-info {
   padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
+  margin: 8px;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background-color: var(--primary-color);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  margin-right: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  margin-right: 12px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+}
+
+.user-details {
+  flex: 1;
 }
 
 .username {
   font-size: 14px;
   font-weight: 500;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.user-status {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #52c41a;
+  margin-right: 6px;
+}
+
+.status-text {
+  font-size: 12px;
 }
 
 .main-content {
   flex: 1;
-  margin-left: 220px;
+  margin-left: 240px;
   padding: 30px 40px;
   background-color: var(--background-color);
   min-height: 100vh;
-  width: calc(100% - 220px);
+  width: calc(100% - 240px);
   box-sizing: border-box;
+  transition: all 0.3s ease;
 }
 
 /* 登录页面全宽内容 */
@@ -298,20 +406,30 @@ body {
     display: none;
   }
   
-  .nav-icon {
+  .user-status {
+    display: none;
+  }
+  
+  .avatar {
     margin-right: 0;
   }
   
-  .nav-item {
-    justify-content: center;
-  }
-  
-  .username {
+  .user-details {
     display: none;
   }
   
   .user-info {
     justify-content: center;
+    padding: 12px;
+  }
+  
+  .nav-item {
+    justify-content: center;
+    padding: 0;
+  }
+  
+  .nav-icon-wrapper {
+    margin-right: 0;
   }
   
   .main-content:not(.full-width) {
